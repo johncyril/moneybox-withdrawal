@@ -24,3 +24,12 @@ As part of this process however, you should look to refactor some of the code in
 Once you have completed your work, send us a link to your public repository.
 
 Good luck!
+
+## Notes from John Cyril
+Changed the previous implementation of subtacting the "Withdrawn" amount.
+It feels more correct to Add to the withdrawn amount as a guage of accumulated activity. Withdrawn != balance...
+If, on the otherhand, it would be appropriate for withdrawn and paid in to net against each other, one could consider making this one variable that tracks the net activity of paid/withdrawn breach a limit
+
+Noted there was no "Withdraw limit" in place on the Account. This could have been an extra consideration.
+
+Enjoyed the task, not used .netcore before - learned a lot. As rhinomocks isn't compatiable, had to get to grips with Moq too, which was cool
