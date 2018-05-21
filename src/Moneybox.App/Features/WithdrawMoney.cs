@@ -17,7 +17,13 @@ namespace Moneybox.App.Features
 
         public void Execute(Guid fromAccountId, decimal amount)
         {
-            // TODO:
+            var from = this.accountRepository.GetAccountById(fromAccountId);
+
+            var moveMoneyHelper = new MoveMoneyHelper(notificationService);
+            moveMoneyHelper.ValidateNewFromBalance(from, amount);
+            moveMoneyHelper.ApplyNewAmounts(from, amount);
+
+            this.accountRepository.Update(from);            
         }
     }
 }
