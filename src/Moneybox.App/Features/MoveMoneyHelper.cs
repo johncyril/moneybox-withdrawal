@@ -2,44 +2,21 @@
 using System.Collections.Generic;
 using System.Text;
 using Moneybox.App.Domain.Services;
+using static Moneybox.App.Account;
 
 namespace Moneybox.App.Features
 {
     public class MoveMoneyHelper
     {
         private INotificationService notificationService;
+        NotifyUser notifyPayInLimit;
+        NotifyUser notifyFundsLow;
 
         public MoveMoneyHelper(INotificationService notificationService)
         {
             this.notificationService = notificationService;
-        }
-
-        internal void ValidateNewPaidInAmount(Account to, decimal amount)
-        {
-            var newPainInAmount = to.PaidIn + amount;
-            if (newPainInAmount > Account.PayInLimit)
-            {
-                throw new InvalidOperationException("Account pay in limit reached");
-            }
-
-            if (Account.PayInLimit - newPainInAmount < 500m)
-            {
-                this.notificationService.NotifyApproachingPayInLimit(to.User.Email);
-            }
-        }
-
-        internal void ValidateNewFromBalance(Account from, decimal amount)
-        {
-            var fromBalance = from.Balance - amount;
-            if (fromBalance < 0m)
-            {
-                throw new InvalidOperationException("Insufficient funds to make transfer");
-            }
-
-            if (fromBalance < 500m)
-            {
-                this.notificationService.NotifyFundsLow(from.User.Email);
-            }
+            notifyPayInLimit = new NotifyUser(NotifyPayInLimit);
+            notifyFundsLow = new NotifyUser(NotifyFundsLow);
         }
 
         /// <summary>
@@ -50,18 +27,27 @@ namespace Moneybox.App.Features
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <param name="amount"></param>
-        internal void ApplyNewAmounts(Account from, Account to, decimal amount)
+        internal void Transact(Account from, Account to, decimal amount)
         {
-            ApplyNewAmounts(from, amount);
-
-            to.Balance = to.Balance + amount;
-            to.PaidIn = to.PaidIn + amount;
+            if (!to.CanCredit(amount)) throw new InvalidOperationException("Account pay in limit reached");
+            Transact(from, amount);
+            to.Credit(amount, notifyPayInLimit);           
         }
 
-        internal void ApplyNewAmounts(Account from, decimal amount)
+        internal void Transact(Account from, decimal amount)        
         {
-            from.Balance = from.Balance - amount;
-            from.Withdrawn = from.Withdrawn + amount;          
+            if (!from.CanDebit(amount)) throw new InvalidOperationException("Insufficient funds to make transfer");
+            from.Debit(amount, notifyFundsLow);
+        }
+
+        void NotifyPayInLimit(string email)
+        {
+            this.notificationService.NotifyApproachingPayInLimit(email);
+        }
+
+        void NotifyFundsLow(string email)
+        {
+            this.notificationService.NotifyFundsLow(email);
         }
     }
 }

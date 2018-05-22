@@ -20,8 +20,7 @@ namespace Moneybox.App.Features
             var from = this.accountRepository.GetAccountById(fromAccountId);
 
             var moveMoneyHelper = new MoveMoneyHelper(notificationService);
-            moveMoneyHelper.ValidateNewFromBalance(from, amount);
-            moveMoneyHelper.ApplyNewAmounts(from, amount);
+            moveMoneyHelper.Transact(from, amount);
 
             this.accountRepository.Update(from);            
         }
